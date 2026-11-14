@@ -1,7 +1,12 @@
-// food-picture-01 entry v2: copies the winning food picture to the output directory.
-// v2 picture: tight close-up photograph of mango sticky rice (glossy mango fan,
-// coconut-cream ribbons, steam, warm light) — replaces the v1 procedural
-// illustration, which ranked #2,903 of 2,921: flat vector art loses to photos.
+// food-picture-01 entry v3: copies the winning food picture to the output directory.
+// v3 picture: steaming tonkotsu ramen, chopsticks lifting a tall noodle pull
+// above the bowl — jammy egg, chili-oil swirls, nori, green onion, dark moody
+// background, warm light. v3 replaces the v2 tight mango photo, which ranked
+// #2,403 of 3,196 (3W-9L): a competent but generic crop with no drama, no
+// action, no story, and a pale palette. The new hypothesis is a different dish
+// with a moment in it — the pull, the steam, the color contrast — picked by
+// direct visual inspection after the CrowLLM vision routes proved blind again
+// (hallucinated dishes + first-presented bias on every probe call).
 // Deterministic: a straight byte copy, same bytes every run. No network, no deps.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -28,10 +33,21 @@ function readPngDimensions(buf: Buffer): { width: number; height: number } {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
+function hasIendChunk(buf: Buffer): boolean {
+  // A complete PNG ends with the 12-byte IEND chunk: length 0, "IEND", CRC.
+  // The signature/IHDR checks above cannot catch a file truncated at the tail.
+  if (buf.length < 12) return false;
+  const tail = buf.subarray(buf.length - 12);
+  return tail.readUInt32BE(0) === 0 && tail.toString("ascii", 4, 8) === "IEND";
+}
+
 function main(): void {
   const src = resolveSource();
   const buf = readFileSync(src);
   const { width, height } = readPngDimensions(buf);
+  if (!hasIendChunk(buf)) {
+    throw new Error("entry.png is truncated (no IEND chunk at the end)");
+  }
   if (width > MAX_DIM || height > MAX_DIM) {
     throw new Error(`entry.png is ${width}x${height}, over the ${MAX_DIM}x${MAX_DIM} limit`);
   }
@@ -62,6 +78,9 @@ function main(): void {
   }
   if (back.length > MAX_BYTES) {
     throw new Error(`output is ${back.length} bytes, over the ${MAX_BYTES} byte limit`);
+  }
+  if (!hasIendChunk(back)) {
+    throw new Error("output is truncated (no IEND chunk at the end)");
   }
   console.log(`wrote ${out} (${written.size} bytes, ${width}x${height})`);
 }
