@@ -1,4 +1,7 @@
-// food-picture-01 entry: copies the winning food picture to the output directory.
+// food-picture-01 entry v2: copies the winning food picture to the output directory.
+// v2 picture: tight close-up photograph of mango sticky rice (glossy mango fan,
+// coconut-cream ribbons, steam, warm light) — replaces the v1 procedural
+// illustration, which ranked #2,903 of 2,921: flat vector art loses to photos.
 // Deterministic: a straight byte copy, same bytes every run. No network, no deps.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -47,6 +50,18 @@ function main(): void {
   const back = readFileSync(out);
   if (!back.equals(buf)) {
     throw new Error("copy mismatch: written bytes differ from entry.png");
+  }
+  // Validate the written output as a standalone entry, independent of the
+  // source comparison: the file on disk must itself be a valid PNG within the
+  // bounty limits, so a corrupt or truncated write can never pass silently.
+  const outDims = readPngDimensions(back);
+  if (outDims.width !== width || outDims.height !== height) {
+    throw new Error(
+      `output dimensions changed: ${outDims.width}x${outDims.height}, source is ${width}x${height}`
+    );
+  }
+  if (back.length > MAX_BYTES) {
+    throw new Error(`output is ${back.length} bytes, over the ${MAX_BYTES} byte limit`);
   }
   console.log(`wrote ${out} (${written.size} bytes, ${width}x${height})`);
 }

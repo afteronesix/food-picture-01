@@ -5,12 +5,18 @@ food picture."
 
 ## The picture
 
-A bright, fresh mango sticky rice on a clean ceramic plate: glistening mango
-cheeks fanned over warm sticky rice, coconut-cream drizzle, toasted sesame,
-a mint leaf, soft morning light. Drawn procedurally with PIL (deterministic,
-no network) — it won a 12-call pairwise vision judging against two other
-concepts (sizzling butter-garlic shrimp: 4 wins; smash-burger cheese melt:
-3 wins; mango sticky rice: **5 wins**).
+A tight, warm close-up photograph of mango sticky rice filling the frame:
+glistening mango cheeks fanned over glossy warm sticky rice, coconut-cream
+ribbons, toasted sesame, a mint leaf, a faint wisp of steam, golden morning
+light. v2 replaces the v1 procedural illustration: v1 won its internal judging
+but ranked #2,903 of 2,921 on the real leaderboard — flat vector art loses to
+photographs in this bounty, so v2 is a photo with the same dish, tighter crop,
+stronger gloss and warmer light. v2 was picked over two sibling photo variants
+(a judge-note version of the same shot, and a mango-rose overhead on dark
+slate) on direct visual inspection against the house criteria, after the API
+vision-judging routes all proved unusable on the day (CrowLLM vision models
+returned canned/hallucinated answers without seeing the images; the router's
+Google route was rate-limited). At 300 px wide the dish still reads clearly.
 
 ## How to run
 
